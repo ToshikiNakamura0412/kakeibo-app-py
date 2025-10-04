@@ -1,1 +1,1 @@
-# kakeibo-app
+# kakeibo-app-py
