@@ -1,8 +1,11 @@
 import streamlit as st
 
-st.page_link("app.py", label=":material/Home:")
+from kakeibo import utils
 
-st.title('入力フォーム')
+utils.rendar_sidebar()
+utils.rendar_home_button()
+
+st.title(':material/Input: 入力フォーム')
 
 date = st.date_input('日付：')
 
