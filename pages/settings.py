@@ -2,7 +2,7 @@ import json
 import pandas as pd
 import streamlit as st
 
-from kakeibo import utils
+from kakeibo.common import utils
 
 utils.set_page_config()
 utils.rendar_sidebar()
