@@ -3,7 +3,7 @@ from pandas import DataFrame
 
 @dataclass
 class Entry():
-    date: str = 'data'
+    date: str = 'date'
     transaction_type: str = 'transaction_type'
     category: str = 'category'
     note: str = 'note'
