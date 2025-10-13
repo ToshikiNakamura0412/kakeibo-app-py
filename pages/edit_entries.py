@@ -1,8 +1,8 @@
 import pandas as pd
-import sqlite3
 import streamlit as st
 
-from kakeibo.common import utils
+from kakeibo.common import utils, config_models
+from kakeibo.model import database
 
 utils.set_page_config()
 utils.rendar_sidebar()
@@ -10,23 +10,7 @@ utils.rendar_home_button()
 
 st.title(":material/Edit: 編集画面")
 
-dbname = 'data/entries.db'
-conn = sqlite3.connect(dbname)
-
-cur = conn.cursor()
-
-cur.execute("""
-CREATE TABLE IF NOT EXISTS entries (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT NOT NULL,
-    transaction_type TEXT NOT NULL,
-    category TEXT NOT NULL,
-    note TEXT,
-    payment_method TEXT,
-    amount INTEGER NOT NULL
-)
-""")
-conn.commit()
+database.create_table()
 
 # update
 update_success = False
@@ -39,8 +23,7 @@ with row[2]:
 	new_value = st.text_input('新しい値：')
 with row[3]:
 	if st.button('更新'):
-		cur.execute(f'UPDATE entries SET {col_name} = ? WHERE id = ?', (new_value, id_to_update))
-		conn.commit()
+		database.update_entry(id_to_update, col_name, new_value)
 		update_success = True
 
 if update_success:
@@ -70,14 +53,11 @@ with row[1]:
 
 if 'delete_id' in st.session_state:
 	# check if the id exists
-	cur.execute('SELECT COUNT(*) FROM entries WHERE id = ?', (st.session_state['delete_id'],))
-	count = cur.fetchone()[0]
-	if count == 0:
+	if not database.check_entry_exists(st.session_state['delete_id']):
 		st.error(f'ID {st.session_state["delete_id"]} の記録は存在しません。')
 	else:
 		# delete the entry
-		cur.execute('DELETE FROM entries WHERE id = ?', (st.session_state['delete_id'],))
-		conn.commit()
+		database.delete_entry(st.session_state['delete_id'])
 		st.success(f'ID {id_to_delete} の記録を削除しました。')
 	del st.session_state['delete_id']
 
@@ -85,19 +65,23 @@ if not detele_success:
 	st.error('IDは0以上の整数を入力してください。')
 
 if st.button('ダミーデータ追加'):
-	cur.execute("""
-	INSERT INTO entries (date, transaction_type, category, note, payment_method, amount)
-	VALUES ('2023-01-01', '支出', '食費', 'ランチ', 'クレジット', 10000)
-	""")
-	conn.commit()
+	dummy_entry = config_models.Entry(
+		'2023-01-01',
+		'支出',
+		'食費',
+		'ランチ',
+		'クレジット',
+		'1000'
+	)
+	database.add_entry(dummy_entry)
 
 st.subheader('記録一覧')
 # すべての記録を取得して表示
-cur.execute('SELECT * FROM entries')
-# cur.fetchall()の結果をDataFrameに変換して表示する方法もある
-df = pd.read_sql_query('SELECT * FROM entries', conn)
+df = database.fetch_all_entries()
 
-df.columns = ['ID', '日付', '収入/支出', 'カテゴリ', '内容', '支払方法', '金額']
+jp_col_label = config_models.ENTRY_LABELS_JP.to_list()
+jp_col_label.insert(0, 'ID')
+df.columns = jp_col_label
 # 金額列を通貨形式に変換
 df['金額'] = df['金額'].apply(lambda x: f"¥{x:,}")
 
@@ -121,6 +105,3 @@ if transaction_type != "全て":
     df = df[df["収入/支出"] == transaction_type]
 
 st.dataframe(df, hide_index=True)
-
-cur.close()
-conn.close()
