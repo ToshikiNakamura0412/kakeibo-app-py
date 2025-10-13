@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pandas import DataFrame
 
 @dataclass
-class EntryLabelConfig():
+class Entry():
     date: str = 'data'
     transaction_type: str = 'transaction_type'
     category: str = 'category'
@@ -19,8 +19,8 @@ class EntryLabelConfig():
             self.amount,
         ]
 
-ENTRY_LABELS_EN = EntryLabelConfig()
-ENTRY_LABELS_JP = EntryLabelConfig(
+ENTRY_LABELS_EN = Entry()
+ENTRY_LABELS_JP = Entry(
     '日付',
     '収入/支出',
     'カテゴリー',
