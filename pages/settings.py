@@ -13,7 +13,9 @@ selected_option = st.selectbox('設定メニュー', ['ユーザー設定', 'カ
 
 st.markdown('---')
 
-JSON_FILE_PATH = 'configs/config.json'
+CONFIG_FILE_PATH = 'configs/config.json'
+CUSTOM_CONFIG_FILE_PATH = 'configs/custom_config.json'
+JSON_FILE_PATH = CUSTOM_CONFIG_FILE_PATH if utils.check_file_exists(CUSTOM_CONFIG_FILE_PATH) else CONFIG_FILE_PATH
 
 def user_setting_change_callback():
 	st.session_state['user_setting_changed'] = True
@@ -43,7 +45,7 @@ if selected_option == 'ユーザー設定':
 		if st.session_state.get('user_setting_changed', False):
 			st.success(':material/Check: ユーザー設定を更新しました！')
 			df['configs']['user_settings'] = updated_user_settings
-			df.to_json(JSON_FILE_PATH, force_ascii=False, indent=2)
+			df.to_json(CUSTOM_CONFIG_FILE_PATH, force_ascii=False, indent=2)
 			del st.session_state['user_setting_changed']
 			st.rerun()
 

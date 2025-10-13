@@ -13,3 +13,7 @@ def rendar_sidebar():
 
 def rendar_home_button():
 	st.page_link("app.py", label=":material/Home:")
+
+def check_file_exists(file_path):
+	import os
+	return os.path.exists(file_path)
