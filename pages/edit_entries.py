@@ -11,58 +11,49 @@ utils.rendar_home_button()
 st.title(":material/Edit: 編集画面")
 
 database.create_table()
+# すべての記録を取得して表示
+df = database.fetch_all_entries()
+
+@st.dialog(title='削除確認')
+def detete_confirmation(id_to_delete):
+	st.write('本当に削除しますか？')
+	if st.button('はい'):
+		database.delete_entry(id_to_delete)
+		st.session_state['delete_success'] = id_to_delete
+		st.session_state['selected_id'] = id_to_delete
+		st.rerun()
+	if st.button('いいえ'):
+		st.rerun()
 
 # update
-update_success = False
-row = st.columns(4, vertical_alignment='bottom')
+update_success = True if 'update_success' in st.session_state else False
+delete_success = True if 'delete_success' in st.session_state else False
+if update_success and st.session_state['selected_id']:
+	st.success(f'ID {st.session_state['selected_id']} の記録を更新しました。')
+	del st.session_state['update_success']
+if delete_success and st.session_state['selected_id']:
+	st.success(f'ID {st.session_state['selected_id']} の記録を削除しました。')
+	del st.session_state['delete_success']
+if 'selected_id' in st.session_state:
+	del st.session_state['selected_id']
+
+row = st.columns(5, vertical_alignment='bottom')
 with row[0]:
-	id_to_update = st.number_input('ID：', min_value=0, step=1)
+	selected_id = st.selectbox('ID：', df['id'].tolist())
 with row[1]:
 	col_name = st.selectbox('項目：', ['date', 'transaction_type', 'category', 'note', 'payment_method', 'amount'])
 with row[2]:
 	new_value = st.text_input('新しい値：')
 with row[3]:
 	if st.button('更新'):
-		database.update_entry(id_to_update, col_name, new_value)
-		update_success = True
-
-if update_success:
-	st.success(f'ID {id_to_update} の記録を更新しました。')
-
-@st.dialog(title='削除確認')
-def detete_confirmation(id_to_delete):
-	st.write('本当に削除しますか？')
-	if st.button('はい'):
-		st.session_state['delete_id'] = id_to_delete
+		database.update_entry(selected_id, col_name, new_value)
+		st.session_state['update_success'] = True
+		st.session_state['selected_id'] = selected_id
 		st.rerun()
-	if st.button('いいえ'):
-		st.rerun()
-
-row = st.columns(4, vertical_alignment='bottom')
-
-detele_success = True
-with row[0]:
-	id_to_delete = st.number_input('ID：', min_value=-1, step=1)
-with row[1]:
+with row[4]:
 	if st.button('削除'):
-		if id_to_delete >= 0:
-			if 'delete_id' not in st.session_state:
-				detete_confirmation(id_to_delete)
-		elif id_to_delete < 0:
-			detele_success = False
+		detete_confirmation(selected_id)
 
-if 'delete_id' in st.session_state:
-	# check if the id exists
-	if not database.check_entry_exists(st.session_state['delete_id']):
-		st.error(f'ID {st.session_state["delete_id"]} の記録は存在しません。')
-	else:
-		# delete the entry
-		database.delete_entry(st.session_state['delete_id'])
-		st.success(f'ID {id_to_delete} の記録を削除しました。')
-	del st.session_state['delete_id']
-
-if not detele_success:
-	st.error('IDは0以上の整数を入力してください。')
 
 # if st.button('ダミーデータ追加'):
 # 	dummy_entry = config_models.Entry(
@@ -96,8 +87,6 @@ st.download_button(
 )
 
 st.subheader('記録一覧')
-# すべての記録を取得して表示
-df = database.fetch_all_entries()
 
 jp_col_label = config_models.ENTRY_LABELS_JP.to_list()
 jp_col_label.insert(0, 'ID')
