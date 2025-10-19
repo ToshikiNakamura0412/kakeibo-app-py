@@ -64,16 +64,36 @@ if 'delete_id' in st.session_state:
 if not detele_success:
 	st.error('IDは0以上の整数を入力してください。')
 
-if st.button('ダミーデータ追加'):
-	dummy_entry = config_models.Entry(
-		'2023-01-01',
-		'支出',
-		'食費',
-		'ランチ',
-		'クレジット',
-		'1000'
-	)
-	database.add_entry(dummy_entry)
+# if st.button('ダミーデータ追加'):
+# 	dummy_entry = config_models.Entry(
+# 		'2023-01-01',
+# 		'支出',
+# 		'食費',
+# 		'ランチ',
+# 		'クレジット',
+# 		'1000'
+# 	)
+# 	database.add_entry(dummy_entry)
+
+# インポート
+uploaded_file = st.file_uploader("**CSVファイルをアップロード**", type=["csv"])
+temp_df = pd.DataFrame(columns=config_models.ENTRY_LABELS_JP.to_list())
+temp_df.loc[0] = [
+	'2023-01-01',  # 日付
+	'支出',        # 収入/支出
+	'食費',        # カテゴリ
+	'ランチ',      # メモ
+	'クレジット',  # 支払い方法
+	'1000'        # 金額
+]
+temp_csv = temp_df.to_csv(index=False).encode('utf-8-sig')
+st.download_button(
+	label='Download CSV Template',
+	data=temp_csv,
+	file_name='kakeibo_template.csv',
+	mime='text/csv',
+	icon=":material/download:",
+)
 
 st.subheader('記録一覧')
 # すべての記録を取得して表示
