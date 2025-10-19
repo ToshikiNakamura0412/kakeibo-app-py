@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 import sqlite3
 import streamlit as st
@@ -12,12 +13,18 @@ st.title(':material/Bar_Chart: 照会画面')
 
 categories = ['食費', '交通費', '娯楽費', 'その他']
 
-view_type = st.radio('表示形式を選択してください', ('年別', '月別'))
+# view_type = st.radio('表示形式を選択してください', ('年別', '月別'))
+view_type_options = ['年別', '月別']
+view_type = st.segmented_control('', view_type_options, key="view_type", default=view_type_options[0])
 
-years: list[int] = []
-for year in range(2020, 2031):
-	years.append(year)
-selected_year: int = st.selectbox('年を選択してください', years)
+start_year = datetime.now().year - 5
+end_year = datetime.now().year + 1
+years = list(range(start_year, end_year + 1))
+init_year_index: int = 0
+for i, year in enumerate(years):
+	if year == datetime.now().year:
+		init_year_index: int = i
+selected_year: int = st.selectbox('Year', years, index=init_year_index)
 
 if view_type == '月別':
 	months = []
@@ -34,7 +41,7 @@ else:
 	# insert month from date column
 	df['month'] = pd.to_datetime(df['date']).dt.month
 
-	category_selection = st.pills("category selection", categories, selection_mode="multi")
+	category_selection = st.pills('Tags', categories, selection_mode="multi")
 
 	# st.dataframe(df[df['year'] == int(selected_year)])
 
