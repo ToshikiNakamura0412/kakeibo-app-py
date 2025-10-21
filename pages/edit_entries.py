@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from copy import deepcopy
 
 from kakeibo.common import utils, config_models
 from kakeibo.model import database
@@ -99,7 +100,13 @@ if mode == '編集モード':
 # 	database.add_entry(dummy_entry)
 
 if mode == '削除モード':
-	st.dataframe(selected_entry)
+	jp_col_label = config_models.ENTRY_LABELS_JP.to_list()
+	jp_col_label.insert(0, 'ID')
+	selected_entry_for_display = deepcopy(selected_entry)
+	selected_entry_for_display = pd.DataFrame(selected_entry_for_display)
+	selected_entry_for_display.columns = ['データ']
+	selected_entry_for_display.index = jp_col_label
+	st.dataframe(selected_entry_for_display)
 	if st.button('削除'):
 		detete_confirmation(selected_id)
 
@@ -127,6 +134,12 @@ if mode == 'インポート':
 if mode == '表示モード':
 	jp_col_label = config_models.ENTRY_LABELS_JP.to_list()
 	jp_col_label.insert(0, 'ID')
+	selected_entry_for_display = deepcopy(selected_entry)
+	selected_entry_for_display = pd.DataFrame(selected_entry_for_display)
+	selected_entry_for_display.columns = ['データ']
+	selected_entry_for_display.index = jp_col_label
+	st.dataframe(selected_entry_for_display)
+
 	df.columns = jp_col_label
 	# 金額列を通貨形式に変換
 	df['金額'] = df['金額'].apply(lambda x: f"¥{x:,}")
