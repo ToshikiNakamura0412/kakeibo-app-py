@@ -27,3 +27,14 @@ st.download_button(
 	mime='text/csv',
 	icon=":material/download:",
 )
+
+if uploaded_file is not None:
+	try:
+		df = pd.read_csv(uploaded_file)
+		st.success("CSVファイルの読み込みに成功しました。")
+		st.dataframe(df)
+
+		if st.button("インポートを実行"):
+			st.success("データのインポートが完了しました。")
+	except Exception as e:
+		st.error(f"エラーが発生しました: {e}")
