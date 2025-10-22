@@ -53,6 +53,19 @@ def add_entry(entry):
 	"""
 	execute_commit(sql)
 
+def import_entries_from_df(df):
+	labels = config_models.ENTRY_LABELS_EN
+	for _, row in df.iterrows():
+		entry = config_models.Entry(
+			f'{row[labels.date]}',
+			f'{row[labels.transaction_type]}',
+			f'{row[labels.category]}',
+			f'{row[labels.note]}',
+			f'{row[labels.payment_method]}',
+			f'{row[labels.amount]}',
+		)
+		add_entry(entry)
+
 def delete_entry(entry_id):
 	sql = f"DELETE FROM entries WHERE id = {entry_id}"
 	execute_commit(sql)
