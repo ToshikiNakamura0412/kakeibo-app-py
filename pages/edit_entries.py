@@ -48,7 +48,7 @@ if 'selected_id' in st.session_state:
 
 selected_id = st.selectbox('ID：', df['id'].tolist())
 selected_entry = df[df['id'] == selected_id].iloc[0]
-mode_options = ['表示モード', '編集モード', '削除モード', 'インポート']
+mode_options = ['表示モード', '編集モード', '削除モード']
 mode = st.segmented_control('mode：', mode_options, default=mode_options[0])
 if mode == '編集モード':
 	date = st.date_input('日付：', pd.to_datetime(selected_entry['date']))
@@ -109,27 +109,6 @@ if mode == '削除モード':
 	st.dataframe(selected_entry_for_display)
 	if st.button('削除'):
 		detete_confirmation(selected_id)
-
-# インポート
-if mode == 'インポート':
-	uploaded_file = st.file_uploader("**CSVファイルをアップロード**", type=["csv"])
-	temp_df = pd.DataFrame(columns=config_models.ENTRY_LABELS_JP.to_list())
-	temp_df.loc[0] = [
-		'2023-01-01',  # 日付
-		'支出',        # 収入/支出
-		'食費',        # カテゴリ
-		'ランチ',      # メモ
-		'クレジット',  # 支払い方法
-		'1000'        # 金額
-	]
-	temp_csv = temp_df.to_csv(index=False).encode('utf-8-sig')
-	st.download_button(
-		label='Download CSV Template',
-		data=temp_csv,
-		file_name='kakeibo_template.csv',
-		mime='text/csv',
-		icon=":material/download:",
-	)
 
 if mode == '表示モード':
 	jp_col_label = config_models.ENTRY_LABELS_JP.to_list()
