@@ -129,11 +129,6 @@ if mode == '表示モード':
 		start_date = st.date_input('開始日')
 	with row[1]:
 		end_date = st.date_input('終了日')
-		# if st.button('フィルタ適用'):
-		# 	if start_date > end_date:
-		# 		st.error('開始日は終了日より前の日付を選択してください。')
-		# 	else:
-		# 		df = df[(df["日付"] >= pd.to_datetime(start_date)) & (df["日付"] <= pd.to_datetime(end_date))]
 	with row[2]:
 		# 収入/支出フィルタ
 		transaction_type = st.selectbox(
@@ -144,5 +139,5 @@ if mode == '表示モード':
 	# フィルタリング
 	if transaction_type != "全て":
 		df = df[df["収入/支出"] == transaction_type]
-
+	df = df[(pd.to_datetime(df['日付']) >= pd.to_datetime(start_date)) & (pd.to_datetime(df['日付']) <= pd.to_datetime(end_date))]
 	st.dataframe(df, hide_index=True)
