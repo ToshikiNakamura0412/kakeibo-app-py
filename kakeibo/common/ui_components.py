@@ -43,7 +43,7 @@ def render_input_form(selected_entry = pd.Series(), selected_id = None, update_b
 	except:
 		entry.category = str(st.pills('', category_options, default=category_options[0]))
 
-	row = st.columns(4)
+	row = st.columns(3)
 	with row[0]:
 		if 'note' in selected_entry.index:
 			entry.note = str(st.text_input('メモ：', selected_entry['note']))
