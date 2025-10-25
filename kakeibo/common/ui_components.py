@@ -11,10 +11,12 @@ def render_input_form(selected_entry = pd.Series(), selected_id = None, update_b
 	config_manger = config_manager.ConfigManager()
 
 	# date
-	if 'date' in selected_entry.index:
-		entry.date = str(st.date_input('日付：', pd.to_datetime(selected_entry['date'])))
-	else:
-		entry.date = str(st.date_input('日付：'))
+	row = st.columns(4)
+	with row[0]:
+		if 'date' in selected_entry.index:
+			entry.date = str(st.date_input('日付：', pd.to_datetime(selected_entry['date'])))
+		else:
+			entry.date = str(st.date_input('日付：'))
 
 	# transaction_type
 	if 'transaction_type' in selected_entry.index:
