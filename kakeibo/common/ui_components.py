@@ -53,18 +53,12 @@ def render_input_form(selected_entry = pd.Series(), selected_id = None, update_b
 		else:
 			entry.amount = str(st.number_input('金額：', min_value=0))
 
-	row = st.columns(5, vertical_alignment='bottom')
-	with row[0]:
-		col_name = st.selectbox('項目：', ['date', 'transaction_type', 'category', 'note', 'payment_method', 'amount'])
-	with row[1]:
-		new_value = st.text_input('新しい値：')
-	with row[2]:
-		if st.button(update_button_label):
-			if selected_id is not None:
-				database.update_entry(selected_id, col_name, new_value)
-			else:
-				database.add_entry(entry)
+	if st.button(update_button_label):
+		if selected_id is not None:
+			database.update_entry(selected_id, entry)
+		else:
+			database.add_entry(entry)
 
-			st.session_state['update_success'] = True
-			st.session_state['selected_id'] = selected_id
-			st.rerun()
+		st.session_state['update_success'] = True
+		st.session_state['selected_id'] = selected_id
+		st.rerun()

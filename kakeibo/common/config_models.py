@@ -19,6 +19,15 @@ class Entry():
             self.amount,
         ]
 
+    def to_dict(self) -> dict[str, str]: return {
+            'date': self.date,
+            'transaction_type': self.transaction_type,
+            'category': self.category,
+            'note': self.note,
+            'payment_method': self.payment_method,
+            'amount': self.amount,
+        }
+
 ENTRY_LABELS_EN = Entry()
 ENTRY_LABELS_JP = Entry(
     '日付',

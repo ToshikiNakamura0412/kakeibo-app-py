@@ -70,9 +70,20 @@ def delete_entry(entry_id):
 	sql = f"DELETE FROM entries WHERE id = {entry_id}"
 	execute_commit(sql)
 
-def update_entry(id, col_name, value):
-	sql = f"UPDATE entries SET {col_name} = '{value}' WHERE id = {id}"
+def update_data(entry_id, col_name, value):
+	sql = f"UPDATE entries SET {col_name} = '{value}' WHERE id = {entry_id}"
 	execute_commit(sql)
+
+def update_entry(entry_id, entry):
+	df = fetch_all_entries()
+	labels = config_models.ENTRY_LABELS_EN.to_list()
+	old_entry = df[df['id'] == entry_id]
+	new_entry = entry.to_dict()
+	for col in labels:
+		old_value = old_entry[col]
+		new_value = new_entry[col]
+		if str(old_value) != str(new_value):
+			update_data(entry_id, col, new_value)
 
 def check_entry_exists(id, db_path = 'data/entries.db'):
 	conn = sqlite3.connect(db_path)
