@@ -26,10 +26,18 @@ def render_input_form(selected_entry = pd.Series(), selected_id = None, update_b
 
 	# payment_method
 	payment_method_options = ['現金']
-	for i in range(int(config_manger.user_settings_df['利用銀行数'])):
-		payment_method_options.append(f"銀行{i+1}")
-	for i in range(int(config_manger.user_settings_df['利用クレジットカード数'])):
-		payment_method_options.append(f"クレジット{i+1}")
+	for i in range(1, 11):
+		if config_manger.is_in_config(f'bank_account_{i}'):
+			bank_account_config = config_manger.get_bank_account(i)
+			payment_method_options.append(f"{bank_account_config.name}（銀行）")
+		else:
+			break
+	for i in range(1, 11):
+		if config_manger.is_in_config(f'credit_card_{i}'):
+			credit_card_config = config_manger.get_credit_card(i)
+			payment_method_options.append(f"{credit_card_config.name}（クレジット）")
+		else:
+			break
 	try:
 		entry.payment_method = str(st.segmented_control('', payment_method_options, default=selected_entry['payment_method']))
 	except:
