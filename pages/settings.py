@@ -1,7 +1,7 @@
-import pandas as pd
 import streamlit as st
 
 from kakeibo.common import utils, config_models
+from kakeibo.common.config_manager import ConfigManager
 
 utils.set_page_config()
 utils.rendar_sidebar()
@@ -9,13 +9,13 @@ utils.rendar_home_button()
 
 st.title(':material/Settings: 設定')
 
+config_manger = ConfigManager()
+user_settings_df = config_manger.user_settings_df
+categories_df = config_manger.categories_df
+
 selected_option = st.selectbox('設定メニュー', ['ユーザー設定', 'カテゴリー設定'])
 
 st.markdown('---')
-
-CONFIG_FILE_PATH = 'configs/config.json'
-CUSTOM_CONFIG_FILE_PATH = 'configs/custom_config.json'
-JSON_FILE_PATH = CUSTOM_CONFIG_FILE_PATH if utils.check_file_exists(CUSTOM_CONFIG_FILE_PATH) else CONFIG_FILE_PATH
 
 def user_setting_change_callback():
 	st.session_state['user_setting_changed'] = True
@@ -32,42 +32,139 @@ def bank_account_change_callback():
 def credit_card_change_callback():
 	st.session_state['credit_card_changed'] = True
 
-with open(JSON_FILE_PATH, 'r', encoding='utf-8') as f:
-	df = pd.read_json(f)
-	user_settings_df = df['configs']['user_settings']
-	categories_df = df['configs']['categories']
+@st.dialog(title='削除確認')
+def delete_config_confirmation(key):
+	st.write('本当に削除しますか？')
+	if st.button('はい'):
+		config_manger.delete_config(key)
+		st.rerun()
+	if st.button('いいえ'):
+		st.rerun()
 
 if selected_option == 'ユーザー設定':
-	st.markdown('**ユーザー設定**')
-	updated_user_settings = st.data_editor(user_settings_df, num_rows='dynamic', use_container_width=True, on_change=user_setting_change_callback)
-
-	if st.button(':material/save: 保存'):
-		if st.session_state.get('user_setting_changed', False):
+	cols = st.columns([11,1], vertical_alignment='center')
+	with cols[0]:
+		st.markdown('##### ユーザー設定')
+	with cols[-1]:
+		if st.button(f'', icon=':material/edit:'):
+			if f'edit_cash' not in st.session_state:
+				st.session_state[f'edit_cash'] = True
+			else:
+				del st.session_state[f'edit_cash']
+	if 'edit_cash' in st.session_state:
+		cols = st.columns([2, 5], vertical_alignment='bottom')
+		with cols[0]:
+			cash_init_balance = st.number_input('初期残高（現金）', value=int(config_manger.get_cash_init_balance()))
+		if st.button(':material/save: 保存'):
+			config_manger.update_cash_init_balance(cash_init_balance)
 			st.success(':material/Check: ユーザー設定を更新しました！')
-			df['configs']['user_settings'] = updated_user_settings
-			df.to_json(CUSTOM_CONFIG_FILE_PATH, force_ascii=False, indent=2)
-			del st.session_state['user_setting_changed']
-			st.rerun()
+	else:
+		cols = st.columns([4,10], vertical_alignment='center')
+		with cols[0]:
+			st.markdown('初期残高（現金）')
+		with cols[1]:
+			st.markdown(f'{config_manger.get_cash_init_balance():,} 円')
 
 	# bank account settings
-	size_of_bank = int(user_settings_df['利用銀行数'])
+	st.markdown('---')
+	st.markdown('##### 銀行口座設定')
+	size_of_bank = 0
+	for i in range(1, 11):
+		if config_manger.is_in_config(f'bank_account_{i}'):
+			size_of_bank += 1
+		else:
+			break
 	if size_of_bank > 0:
-		st.markdown('**銀行口座設定**')
-		st.data_editor(config_models.BankAccountConfig().to_dataframe(), hide_index=True, on_change=bank_account_change_callback)
-		if st.button(':material/save: 銀行口座設定 保存'):
-			if st.session_state.get('bank_account_changed', False):
+		for i in range(size_of_bank):
+			cols = st.columns([8,1,1], vertical_alignment='bottom')
+			with cols[0]:
+				st.markdown(f'**銀行口座 {i+1}**')
+			with cols[1]:
+				if st.button(f'{i+1}', icon=':material/edit:'):
+					if f'edit_bank_{i+1}' not in st.session_state:
+						st.session_state[f'edit_bank_{i+1}'] = True
+					else:
+						del st.session_state[f'edit_bank_{i+1}']
+			with cols[-1]:
+				if st.button(f'{i+1}', icon=':material/delete:'):
+					delete_config_confirmation(f'bank_account_{i+1}')
+			bank_account_config = config_manger.get_bank_account(i+1)
+			if f'edit_bank_{i+1}' in st.session_state:
+				cols = st.columns([2, 5, 2], vertical_alignment='bottom')
+				with cols[1]:
+					bank_account_config.name = st.text_input(f'名前 (銀行 {i+1})', value=bank_account_config.name)
+					bank_account_config.init_balance = st.number_input(f'初期残高 (銀行 {i+1})', value=int(bank_account_config.init_balance))
+					if st.button(f'銀行口座設定 {i+1} 保存', icon=':material/save:'):
+						config_manger.update_bank_accounts(bank_account_config.to_dict(), index=i+1)
+						st.session_state[f'bank_account_{i+1}_changed'] = True
+						del st.session_state[f'edit_bank_{i+1}']
+						st.rerun()
+			else:
+				cols = st.columns([4, 10], vertical_alignment='bottom')
+				for field, value in bank_account_config.to_dict_jp().items():
+					with cols[0]:
+						st.markdown(f'- {field}')
+					with cols[1]:
+						st.markdown(f'{value}')
+			if st.session_state.get(f'bank_account_{i+1}_changed', False):
 				st.success(':material/Check: 銀行口座設定を更新しました！')
-				del st.session_state['bank_account_changed']
+				del st.session_state[f'bank_account_{i+1}_changed']
+
+	if st.button('銀行口座設定を追加', icon=':material/add:'):
+		config_manger.update_bank_accounts(config_models.BankAccountConfig().to_dict(), index=size_of_bank + 1)
+		st.rerun()
 
 	# credit card settings
-	size_of_credit_card = int(user_settings_df['利用クレジットカード数'])
+	st.markdown('---')
+	st.markdown('##### クレジットカード設定')
+	size_of_credit_card = 0
+	for i in range(1, 11):
+		if config_manger.is_in_config(f'credit_card_{i}'):
+			size_of_credit_card += 1
+		else:
+			break
 	if size_of_credit_card > 0:
-		st.markdown('**クレジットカード設定**')
-		st.data_editor(config_models.CreditCardConfig().to_dataframe(), hide_index=True, on_change=credit_card_change_callback)
-		if st.button(':material/save: クレジットカード設定 保存'):
-			if st.session_state.get('credit_card_changed', False):
+		for i in range(size_of_credit_card):
+			cols = st.columns([8,1,1], vertical_alignment='bottom')
+			with cols[0]:
+				st.markdown(f'**クレジットカード {i+1}**')
+			with cols[1]:
+				if st.button(f' {i+1}', icon=':material/edit:'):
+					if f'edit_credit_{i+1}' not in st.session_state:
+						st.session_state[f'edit_credit_{i+1}'] = True
+					else:
+						del st.session_state[f'edit_credit_{i+1}']
+			with cols[-1]:
+				if st.button(f' {i+1}', icon=':material/delete:'):
+					delete_config_confirmation(f'credit_card_{i+1}')
+			credit_card_config = config_manger.get_credit_card(i+1)
+			if f'edit_credit_{i+1}' in st.session_state:
+				cols = st.columns([2, 5, 2], vertical_alignment='bottom')
+				with cols[1]:
+					credit_card_config.name = st.text_input(f'名前 (カード {i+1})', value=credit_card_config.name)
+					credit_card_config.closing_day = st.selectbox(f'締め日 (カード {i+1})', options=list(range(1,32)), index=int(credit_card_config.closing_day) -1)
+					credit_card_config.payment_day = st.selectbox(f'支払日 (カード {i+1})', options=list(range(1,32)), index=int(credit_card_config.payment_day) -1)
+					credit_card_config.limit = st.number_input(f'利用限度額 (カード {i+1})', value=int(credit_card_config.limit))
+					credit_card_config.bank_name = st.text_input(f'引き落とし銀行名 (カード {i+1})', value=credit_card_config.bank_name)
+					if st.button(f'クレジットカード設定 {i+1}　保存', icon=':material/save:'):
+						config_manger.update_credit_cards(credit_card_config.to_dict(), index=i+1)
+						st.session_state[f'credit_card_{i+1}_changed'] = True
+						del st.session_state[f'edit_credit_{i+1}']
+						st.rerun()
+			else:
+				for field, value in credit_card_config.to_dict_jp().items():
+					cols = st.columns([4, 10], vertical_alignment='bottom')
+					with cols[0]:
+						st.markdown(f'- {field}')
+					with cols[1]:
+						st.markdown(f'{value}')
+			if st.session_state.get(f'credit_card_{i+1}_changed', False):
 				st.success(':material/Check: クレジットカード設定を更新しました！')
-				del st.session_state['credit_card_changed']
+				del st.session_state[f'credit_card_{i+1}_changed']
+
+	if st.button('クレジットカード設定を追加', icon=':material/add:'):
+		config_manger.update_credit_cards(config_models.CreditCardConfig().to_dict(), index=size_of_credit_card + 1)
+		st.rerun()
 
 else:
 	row = st.columns(2)
