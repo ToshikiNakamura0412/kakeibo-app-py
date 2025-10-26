@@ -20,7 +20,7 @@ user_settings_df = config_manger.user_settings_df
 categories_df = config_manger.categories_df
 
 @st.dialog(title='削除確認')
-def detete_confirmation(id_to_delete):
+def delete_confirmation(id_to_delete):
 	st.write('本当に削除しますか？')
 	if st.button('はい'):
 		database.delete_entry(id_to_delete)
@@ -92,4 +92,4 @@ elif mode == '削除モード':
 	selected_entry_for_display.index = jp_col_label
 	st.dataframe(selected_entry_for_display)
 	if st.button('削除'):
-		detete_confirmation(selected_id)
+		delete_confirmation(selected_id)
