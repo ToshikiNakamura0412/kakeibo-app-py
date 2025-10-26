@@ -1,9 +1,7 @@
 {
   "configs": {
     "user_settings": {
-      "初期残高（現金）": "0",
-      "利用銀行数": "0",
-      "利用クレジットカード数": "0"
+      "init_balance":0
     },
     "categories": {
       "income": [
