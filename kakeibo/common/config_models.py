@@ -40,7 +40,7 @@ ENTRY_LABELS_JP = Entry(
 
 @dataclass
 class BankAccountConfig():
-    name: str = 'name'
+    name: str = ''
     init_balance: int = 0
 
     def to_dataframe(self) -> DataFrame:
@@ -49,12 +49,24 @@ class BankAccountConfig():
             '初期残高': self.init_balance,
         }])
 
+    def to_dict(self) -> dict[str, str]:
+        return {
+            'name': self.name,
+            'init_balance': str(self.init_balance),
+        }
+
+    def to_dict_jp(self) -> dict[str, str]:
+        return {
+            '名前': self.name,
+            '初期残高': str(self.init_balance),
+        }
+
 @dataclass
 class CreditCardConfig():
     name: str = ''
     closing_day: int = 31
     payment_day: int = 10
-    limit: int = 0
+    limit: int = 300000
     bank_name: str = ''
 
     def to_dataframe(self) -> DataFrame:
@@ -66,3 +78,20 @@ class CreditCardConfig():
             '引き落とし銀行名': self.bank_name,
         }])
 
+    def to_dict(self) -> dict[str, str]:
+        return {
+            'name': self.name,
+            'closing_day': str(self.closing_day),
+            'payment_day': str(self.payment_day),
+            'limit': str(self.limit),
+            'bank_name': self.bank_name,
+        }
+
+    def to_dict_jp(self) -> dict[str, str]:
+        return {
+            '名前': self.name,
+            '締め日': str(self.closing_day),
+            '支払日': str(self.payment_day),
+            '利用限度額': str(self.limit),
+            '引き落とし銀行名': self.bank_name,
+        }
