@@ -30,26 +30,44 @@ def delete_confirmation(id_to_delete):
 	if st.button('いいえ'):
 		st.rerun()
 
-# update
-update_success = True if 'update_success' in st.session_state else False
-delete_success = True if 'delete_success' in st.session_state else False
-if update_success and st.session_state['selected_id']:
+# notice
+if st.session_state.get('update_success') and st.session_state.get('selected_id'):
 	st.success(f'ID {st.session_state['selected_id']} の記録を更新しました。')
 	del st.session_state['update_success']
-if delete_success and st.session_state['selected_id']:
+	del st.session_state['selected_id']
+elif st.session_state.get('delete_success') and st.session_state.get('selected_id'):
 	st.success(f'ID {st.session_state['selected_id']} の記録を削除しました。')
 	del st.session_state['delete_success']
-if 'selected_id' in st.session_state:
 	del st.session_state['selected_id']
 
-row = st.columns(6)
+# id setting
+row = st.columns([2, 1, 1, 11], vertical_alignment='bottom')
 with row[0]:
 	# ID選択
-	selected_id = st.selectbox('ID：', df['id'].tolist())
+	if st.session_state.get('selected_id'):
+		current_index = df.index[df['id'] == st.session_state['selected_id']][0]
+		selected_id = st.selectbox('ID：', df['id'].tolist(), index=int(current_index))
+	else:
+		selected_id = st.selectbox('ID：', df['id'].tolist())
+with row[1]:
+	if st.button('', icon=':material/chevron_left:'):
+		if len(df) != 0:
+			current_index = df.index[df['id'] == selected_id][0]
+			if 0 < current_index:
+				st.session_state['selected_id'] = df.iloc[current_index - 1]['id']
+				st.rerun()
+with row[2]:
+	if st.button('', icon=':material/chevron_right:'):
+		if len(df) != 0:
+			current_index = df.index[df['id'] == selected_id][0]
+			if current_index < len(df) - 1:
+				st.session_state['selected_id'] = df.iloc[current_index + 1]['id']
+				st.rerun()
 selected_entry = df[df['id'] == selected_id].iloc[0]
 mode_options = ['表示モード', '編集モード', '削除モード']
 mode = st.segmented_control('mode：', mode_options, default=mode_options[0])
 
+# mode
 if mode == '表示モード':
 	jp_col_label = config_models.ENTRY_LABELS_JP.to_list()
 	jp_col_label.insert(0, 'ID')
