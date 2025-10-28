@@ -4,12 +4,16 @@ import sqlite3
 import streamlit as st
 
 from kakeibo.common import utils
+from kakeibo.model import database
 
 utils.set_page_config()
 utils.rendar_sidebar()
 utils.rendar_home_button()
 
 st.title(':material/Bar_Chart: 照会画面')
+
+database.create_table()
+df = database.fetch_all_entries()
 
 categories = ['食費', '交通費', '娯楽費', 'その他']
 
@@ -30,12 +34,16 @@ if view_type == '月別':
 	months = []
 	for month in range(1, 13):
 		months.append(str(month))
-	selected_month = st.selectbox('月を選択してください', months)
-else:
-	dbname = 'data/entries.db'
-	conn = sqlite3.connect(dbname)
+	selected_month = st.pills('Month', months, key='selected_month', default=str(datetime.now().month))
+	# extract data for selected year and Month
+	df['year'] = pd.to_datetime(df['date']).dt.year
+	df['month'] = pd.to_datetime(df['date']).dt.month
 
-	df = pd.read_sql_query('SELECT * FROM entries', conn)
+	# 集計用df → 次ごとのcategoryごとの合計金額を表示
+	agg_df = df[(df['year'] == int(selected_year)) & (df['month'] == int(selected_month))].groupby(['category']).sum().reset_index()
+	st.bar_chart(agg_df, x='category', y='amount')
+
+else:
 	# insert year from date column
 	df['year'] = pd.to_datetime(df['date']).dt.year
 	# insert month from date column
@@ -51,5 +59,3 @@ else:
 	if category_selection:
 		agg_df = agg_df[agg_df['category'].isin(category_selection)]
 	st.line_chart(agg_df, x='month', y='amount', color='category')
-
-	conn.close()
