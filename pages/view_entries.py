@@ -4,6 +4,7 @@ import sqlite3
 import streamlit as st
 
 from kakeibo.common import utils
+from kakeibo.common.config_manager import ConfigManager
 from kakeibo.model import database
 
 utils.set_page_config()
@@ -15,7 +16,17 @@ st.title(':material/Bar_Chart: 照会画面')
 database.create_table()
 df = database.fetch_all_entries()
 
+config_manger = ConfigManager()
+
 categories = ['食費', '交通費', '娯楽費', 'その他']
+
+# render current balance
+init_balance = config_manger.get_cash_init_balance()
+expenses_sum = df[(df['transaction_type'] == '支出') & (df['payment_method'] == '現金')]['amount'].sum()
+current_balance = init_balance - expenses_sum
+st.subheader(f'初期残高: :money_with_wings: {init_balance} 円')
+st.subheader(f'支出合計: :shopping_cart: {expenses_sum} 円')
+st.subheader(f'現在残高: :bank: {current_balance} 円')
 
 # view_type = st.radio('表示形式を選択してください', ('年別', '月別'))
 view_type_options = ['年別', '月別']
