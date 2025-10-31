@@ -1,6 +1,5 @@
 from datetime import datetime
 import pandas as pd
-import sqlite3
 import streamlit as st
 
 from kakeibo.common import utils
@@ -15,10 +14,11 @@ st.title(':material/Bar_Chart: 照会画面')
 
 database.create_table()
 df = database.fetch_all_entries()
+if len(df) == 0:
+	st.warning('表示するデータがありません。')
+	st.stop()
 
 config_manger = ConfigManager()
-
-categories = ['食費', '交通費', '娯楽費', 'その他']
 
 # render current balance
 init_balance = config_manger.get_cash_init_balance()
@@ -28,8 +28,7 @@ st.subheader(f'初期残高: :money_with_wings: {init_balance} 円')
 st.subheader(f'支出合計: :shopping_cart: {expenses_sum} 円')
 st.subheader(f'現在残高: :bank: {current_balance} 円')
 
-# view_type = st.radio('表示形式を選択してください', ('年別', '月別'))
-view_type_options = ['年別', '月別']
+view_type_options = ['月別', '年別']
 view_type = st.segmented_control('', view_type_options, key="view_type", default=view_type_options[0])
 
 start_year = datetime.now().year - 5
@@ -39,34 +38,45 @@ init_year_index: int = 0
 for i, year in enumerate(years):
 	if year == datetime.now().year:
 		init_year_index: int = i
-selected_year: int = st.selectbox('Year', years, index=init_year_index)
+
+df['year'] = pd.to_datetime(df['date']).dt.year
+df['month'] = pd.to_datetime(df['date']).dt.month
+
+selected_year = st.pills('Year', df['year'].unique(), key='selected_year', default=df['year'].unique()[-1])
+
+if selected_year is None:
+	st.warning('表示する年を選択してください。')
+	st.stop()
 
 if view_type == '月別':
-	months = []
-	for month in range(1, 13):
-		months.append(str(month))
-	selected_month = st.pills('Month', months, key='selected_month', default=str(datetime.now().month))
-	# extract data for selected year and Month
-	df['year'] = pd.to_datetime(df['date']).dt.year
-	df['month'] = pd.to_datetime(df['date']).dt.month
+	selected_month = st.pills('Month', df['month'].unique(), key='selected_month', default=df['month'].unique()[-1])
 
 	# 集計用df → 次ごとのcategoryごとの合計金額を表示
-	agg_df = df[(df['year'] == int(selected_year)) & (df['month'] == int(selected_month))].groupby(['category']).sum().reset_index()
-	st.bar_chart(agg_df, x='category', y='amount')
+	agg_df_income = df[(df['year'] == int(selected_year)) & (df['month'] == int(selected_month)) & (df['transaction_type'] == '収入')].groupby(['category']).sum().reset_index()
+	agg_df_expense = df[(df['year'] == int(selected_year)) & (df['month'] == int(selected_month)) & (df['transaction_type'] == '支出')].groupby(['category']).sum().reset_index()
+
+	if len(agg_df_income) != 0:
+		st.markdown(f"### 収入")
+		st.bar_chart(agg_df_income, x='category', y='amount', x_label='合計金額（円）', y_label='カテゴリー', color='category', horizontal=True)
+	if len(agg_df_expense) != 0:
+		st.markdown(f"### 支出")
+		st.bar_chart(agg_df_expense, x='category', y='amount', x_label='合計金額（円）', y_label='カテゴリー', color='category', horizontal=True)
 
 else:
-	# insert year from date column
-	df['year'] = pd.to_datetime(df['date']).dt.year
-	# insert month from date column
-	df['month'] = pd.to_datetime(df['date']).dt.month
-
-	category_selection = st.pills('Tags', categories, selection_mode="multi")
-
-	# st.dataframe(df[df['year'] == int(selected_year)])
-
 	# 集計用df → 次ごとのcategoryごとの合計金額を表示
-	agg_df = df[df['year'] == int(selected_year)].groupby(['month', 'category']).sum().reset_index()
-	# select only selected categories
-	if category_selection:
-		agg_df = agg_df[agg_df['category'].isin(category_selection)]
-	st.line_chart(agg_df, x='month', y='amount', color='category')
+	agg_df_income = df[(df['year'] == int(selected_year)) & (df['transaction_type'] == '収入')].groupby(['category']).sum().reset_index()
+	agg_df_expense = df[(df['year'] == int(selected_year)) & (df['transaction_type'] == '支出')].groupby(['category']).sum().reset_index()
+
+	if len(agg_df_income) != 0:
+		st.markdown('### 収入')
+		category_selection_income = st.pills('Tags', agg_df_income['category'].tolist(), key='category_selection_income', default=agg_df_income['category'].tolist(), selection_mode="multi")
+		if category_selection_income:
+			agg_df_income = agg_df_income[agg_df_income['category'].isin(category_selection_income)]
+		st.line_chart(agg_df_income, x='month', y='amount', color='category')
+
+	if len(agg_df_expense) != 0:
+		st.markdown('### 支出')
+		category_selection_expense = st.pills('Tags', agg_df_expense['category'].tolist(), key='category_selection_expense', default=agg_df_expense['category'].tolist(), selection_mode="multi")
+		if category_selection_expense:
+			agg_df_expense = agg_df_expense[agg_df_expense['category'].isin(category_selection_expense)]
+		st.line_chart(agg_df_expense, x='month', y='amount', color='category')
