@@ -13,7 +13,8 @@ config_manger = ConfigManager()
 user_settings_df = config_manger.user_settings_df
 categories_df = config_manger.categories_df
 
-selected_option = st.selectbox('設定メニュー', ['ユーザー設定', 'カテゴリー設定'])
+selected_options = ['ユーザー設定', 'カテゴリー設定']
+selected_option = st.segmented_control('設定メニュー', selected_options, default=selected_options[0])
 
 st.markdown('---')
 
