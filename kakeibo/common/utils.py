@@ -9,6 +9,7 @@ def rendar_sidebar():
 		st.page_link("pages/input_form.py", label=":material/Input: 入力フォーム")
 		st.page_link("pages/view_entries.py", label=":material/Bar_Chart: 照会画面")
 		st.page_link("pages/edit_entries.py", label=":material/Edit: 編集画面")
+		st.page_link("pages/import_form.py", label=":material/Place_Item: インポート")
 		st.page_link("pages/settings.py", label=":material/Settings: 設定")
 
 def rendar_home_button():
