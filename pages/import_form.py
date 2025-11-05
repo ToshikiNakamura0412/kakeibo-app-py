@@ -31,14 +31,28 @@ st.download_button(
 	icon=":material/download:",
 )
 
+def format_date(date_str):
+	try:
+		return pd.to_datetime(date_str).strftime('%Y-%m-%d')
+	except:
+		return date_str
+
+def format_date_df(df):
+	if 'date' in df.columns:
+		df['date'] = df['date'].apply(format_date)
+	return df
+
 if uploaded_file is not None:
 	try:
 		df = pd.read_csv(uploaded_file)
 		st.success("CSVファイルの読み込みに成功しました。")
+		if len(df.columns) != len(config_models.ENTRY_LABELS_JP.to_list()):
+			df = df.iloc[:, :len(config_models.ENTRY_LABELS_JP.to_list())]
+		df.columns = config_models.ENTRY_LABELS_EN.to_list()
 		st.dataframe(df, hide_index=True)
 
 		if st.button("インポートを実行"):
-			df.columns = config_models.ENTRY_LABELS_EN.to_list()
+			df = format_date_df(df)
 			database.import_entries_from_df(df)
 			st.success("データのインポートが完了しました。")
 	except Exception as e:
