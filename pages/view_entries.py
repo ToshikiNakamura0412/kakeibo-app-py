@@ -69,14 +69,14 @@ else:
 
 	if len(agg_df_income) != 0:
 		st.markdown('### 収入')
-		category_selection_income = st.pills('Tags', agg_df_income['category'].tolist(), key='category_selection_income', default=agg_df_income['category'].tolist(), selection_mode="multi")
+		category_selection_income = st.pills('Tags', agg_df_income['category'].unique().tolist(), key='category_selection_income', default=agg_df_income['category'].tolist(), selection_mode="multi")
 		if category_selection_income:
 			agg_df_income = agg_df_income[agg_df_income['category'].isin(category_selection_income)]
 		st.line_chart(agg_df_income, x='month', y='amount', color='category')
 
 	if len(agg_df_expense) != 0:
 		st.markdown('### 支出')
-		category_selection_expense = st.pills('Tags', agg_df_expense['category'].tolist(), key='category_selection_expense', default=agg_df_expense['category'].tolist(), selection_mode="multi")
+		category_selection_expense = st.pills('Tags', agg_df_expense['category'].unique().tolist(), key='category_selection_expense', default=agg_df_expense['category'].tolist(), selection_mode="multi")
 		if category_selection_expense:
 			agg_df_expense = agg_df_expense[agg_df_expense['category'].isin(category_selection_expense)]
 		st.line_chart(agg_df_expense, x='month', y='amount', color='category')
