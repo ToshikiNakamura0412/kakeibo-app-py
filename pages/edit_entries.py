@@ -40,15 +40,20 @@ elif st.session_state.get('delete_success') and st.session_state.get('selected_i
 	del st.session_state['delete_success']
 	del st.session_state['selected_id']
 
+# 収入/支出フィルタ
+transaction_type = st.segmented_control("", ["収入", "支出"])
 # id setting
 row = st.columns([2, 1, 1, 11], vertical_alignment='bottom')
 with row[0]:
 	# ID選択
+	id_df = df[df["transaction_type"] == transaction_type] if transaction_type != None else df
+	current_index = 0
 	if st.session_state.get('selected_id'):
-		current_index = df.index[df['id'] == st.session_state['selected_id']][0]
-		selected_id = st.selectbox('ID：', df['id'].tolist(), index=int(current_index))
-	else:
-		selected_id = st.selectbox('ID：', df['id'].tolist())
+		try:
+			current_index = id_df.index[id_df['id'] == st.session_state['selected_id']][0]
+		except IndexError:
+			current_index = 0
+	selected_id = st.selectbox('ID：', id_df['id'].tolist(), index=int(current_index))
 with row[1]:
 	if st.button('', icon=':material/chevron_left:'):
 		if len(df) != 0:
@@ -71,12 +76,6 @@ mode = st.segmented_control('mode：', mode_options, default=mode_options[0])
 if mode == '表示モード':
 	jp_col_label = config_models.ENTRY_LABELS_JP.to_list()
 	jp_col_label.insert(0, 'ID')
-	selected_entry_for_display = deepcopy(selected_entry)
-	selected_entry_for_display = pd.DataFrame(selected_entry_for_display)
-	selected_entry_for_display.columns = ['データ']
-	selected_entry_for_display.index = jp_col_label
-	st.dataframe(selected_entry_for_display)
-
 	df.columns = jp_col_label
 	# 金額列を通貨形式に変換
 	df['金額'] = df['金額'].apply(lambda x: f"¥{x:,}")
@@ -89,19 +88,21 @@ if mode == '表示モード':
 		start_date = st.date_input('開始日', value=pd.to_datetime(f"{df['year'].min()}-{df['month'].min()}-01"))
 	with row[1]:
 		end_date = st.date_input('終了日')
-	with row[2]:
-		# 収入/支出フィルタ
-		transaction_type = st.selectbox(
-			"収支を選択",
-			["全て", "収入", "支出"]
-		)
 
 	# フィルタリング
-	if transaction_type != "全て":
+	if transaction_type != None:
 		df = df[df["収入/支出"] == transaction_type]
 	df = df[(pd.to_datetime(df['日付']) >= pd.to_datetime(start_date)) & (pd.to_datetime(df['日付']) <= pd.to_datetime(end_date))]
+	df = df.drop(columns=['year', 'month'])
 	st.dataframe(df, hide_index=True)
 elif mode == '編集モード':
+	jp_col_label = config_models.ENTRY_LABELS_JP.to_list()
+	jp_col_label.insert(0, 'ID')
+	selected_entry_for_display = deepcopy(selected_entry)
+	selected_entry_for_display = pd.DataFrame(selected_entry_for_display)
+	selected_entry_for_display.columns = ['データ']
+	selected_entry_for_display.index = jp_col_label
+	st.dataframe(selected_entry_for_display)
 	ui_components.render_input_form(selected_entry, selected_id, update_button_label='更新')
 elif mode == '削除モード':
 	jp_col_label = config_models.ENTRY_LABELS_JP.to_list()
