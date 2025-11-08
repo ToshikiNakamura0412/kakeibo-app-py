@@ -1,13 +1,20 @@
+from typing import dataclass_transform
+from unicodedata import category
+from pandas import merge
 import streamlit as st
 
 from kakeibo.common import utils, config_models
 from kakeibo.common.config_manager import ConfigManager
+from kakeibo.model import database
 
 utils.set_page_config()
 utils.rendar_sidebar()
 utils.rendar_home_button()
 
 st.title(':material/Settings: 設定')
+
+database.create_table()
+df = database.fetch_all_entries()
 
 config_manger = ConfigManager()
 user_settings_df = config_manger.user_settings_df
@@ -167,25 +174,49 @@ if selected_option == 'ユーザー設定':
 		config_manger.update_credit_cards(config_models.CreditCardConfig().to_dict(), index=size_of_credit_card + 1)
 		st.rerun()
 
-else:
-	row = st.columns(2)
+elif selected_option == 'カテゴリー設定':
+	edit_mode = st.segmented_control('編集モード', ['編集', '統合'], default='編集')
 
-	with row[0]:
-		st.markdown('**収入カテゴリー設定**')
-		updated_categories_income = st.data_editor(categories_df['income'], num_rows='dynamic', use_container_width=True, on_change=income_df_change_callback)
-	with row[1]:
-		st.markdown('**支出カテゴリー設定**')
-		updated_categories_expense = st.data_editor(categories_df['expense'], num_rows='dynamic', use_container_width=True, on_change=expense_df_change_callback)
+	if edit_mode == '編集':
+		row = st.columns(2)
+		with row[0]:
+			st.markdown('**収入カテゴリー設定**')
+			updated_categories_income = st.data_editor(categories_df['income'], num_rows='dynamic', use_container_width=True, on_change=income_df_change_callback)
+		with row[1]:
+			st.markdown('**支出カテゴリー設定**')
+			updated_categories_expense = st.data_editor(categories_df['expense'], num_rows='dynamic', use_container_width=True, on_change=expense_df_change_callback)
 
-	if st.button(':material/save: 保存'):
-		if st.session_state.get('income_df_changed', False):
-			categories_df['income'] = updated_categories_income
+		if st.button(':material/save: 保存'):
+			if st.session_state.get('income_df_changed', False):
+				categories_df['income'] = updated_categories_income
+				config_manger.update_categories(categories_df)
+				st.success(':material/Check: 収入カテゴリーを更新しました！')
+				del st.session_state['income_df_changed']
+
+			if st.session_state.get('expense_df_changed', False):
+				categories_df['expense'] = updated_categories_expense
+				config_manger.update_categories(categories_df)
+				st.success(':material/Check: 支出カテゴリーを更新しました！')
+				del st.session_state['expense_df_changed']
+
+	elif edit_mode == '統合':
+		st.markdown('**カテゴリー統合**')
+		selected_transaction = st.radio('タイプを選択', ['収入', '支出'], horizontal=True)
+		transaction_type = 'income' if selected_transaction == '収入' else 'expense'
+		category_list = categories_df[transaction_type]
+		row = st.columns([5,1,5,8], vertical_alignment='center')
+		with row[0]:
+			merge_source = st.selectbox('統合元', category_list, key='merge_source_income')
+		with row[1]:
+			st.markdown(':material/arrow_forward_ios:')
+		with row[2]:
+			category_list.remove(merge_source)
+			merge_target = st.selectbox('統合先', category_list, key='merge_target_income')
+
+		if st.button('統合'):
+			mask = (df['transaction_type'] == selected_transaction) & (df['category'] == merge_source)
+			df.loc[mask, 'category'] = merge_target
+			database.override_db(df)
+			categories_df[transaction_type] = category_list
 			config_manger.update_categories(categories_df)
-			st.success(':material/Check: 収入カテゴリーを更新しました！')
-			del st.session_state['income_df_changed']
-
-		if st.session_state.get('expense_df_changed', False):
-			categories_df['expense'] = updated_categories_expense
-			config_manger.update_categories(categories_df)
-			st.success(':material/Check: 支出カテゴリーを更新しました！')
-			del st.session_state['expense_df_changed']
+			st.success(':material/Check: カテゴリーを統合しました！')

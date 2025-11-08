@@ -74,6 +74,11 @@ def update_data(entry_id, col_name, value):
 	sql = f"UPDATE entries SET {col_name} = '{value}' WHERE id = {entry_id}"
 	execute_commit(sql)
 
+def override_db(df):
+	execute_commit("DROP TABLE IF EXISTS entries")
+	create_table()
+	import_entries_from_df(df)
+
 def update_entry(entry_id, entry):
 	df = fetch_all_entries()
 	labels = config_models.ENTRY_LABELS_EN.to_list()

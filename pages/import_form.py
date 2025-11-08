@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from kakeibo.common import utils, config_models
+from kakeibo.common.config_manager import ConfigManager
 from kakeibo.model import database
 
 utils.set_page_config()
@@ -53,7 +54,26 @@ if uploaded_file is not None:
 
 		if st.button("インポートを実行"):
 			df = format_date_df(df)
+
+			# データベースにインポート
 			database.import_entries_from_df(df)
+
+			# カテゴリの更新
+			config_manger = ConfigManager()
+			categories_df = config_manger.categories_df
+			# - 収入カテゴリの更新
+			categories_income_list = categories_df['income']
+			categories_income_list.extend(df[df['transaction_type'] == '収入']['category'].unique().tolist())
+			categories_income_list = list(set(categories_income_list))
+			categories_df['income'] = categories_income_list
+			# - 支出カテゴリの更新
+			categories_expense_list = categories_df['expense']
+			categories_expense_list.extend(df[df['transaction_type'] == '支出']['category'].unique().tolist())
+			categories_expense_list = list(set(categories_expense_list))
+			categories_df['expense'] = categories_expense_list
+			# - 更新反映
+			config_manger.update_categories(categories_df)
+
 			st.success("データのインポートが完了しました。")
 	except Exception as e:
 		st.error(f"エラーが発生しました: {e}")
