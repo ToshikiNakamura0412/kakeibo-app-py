@@ -179,9 +179,13 @@ else:
 
 	if st.button(':material/save: 保存'):
 		if st.session_state.get('income_df_changed', False):
+			categories_df['income'] = updated_categories_income
+			config_manger.update_categories(categories_df)
 			st.success(':material/Check: 収入カテゴリーを更新しました！')
 			del st.session_state['income_df_changed']
 
 		if st.session_state.get('expense_df_changed', False):
+			categories_df['expense'] = updated_categories_expense
+			config_manger.update_categories(categories_df)
 			st.success(':material/Check: 支出カテゴリーを更新しました！')
 			del st.session_state['expense_df_changed']
