@@ -7,6 +7,7 @@ from kakeibo.model import database
 database.create_table()
 
 def render_input_form(selected_entry = pd.Series(), selected_id = None, update_button_label='保存') -> None:
+	df = database.fetch_all_entries()
 	entry = config_models.Entry()
 	config_manger = config_manager.ConfigManager()
 
@@ -38,6 +39,11 @@ def render_input_form(selected_entry = pd.Series(), selected_id = None, update_b
 			payment_method_options.append(f"{credit_card_config.name}（クレジット）")
 		else:
 			break
+	payment_method_options.extend(df['payment_method'].tolist())
+	payment_method_options = list(dict.fromkeys(payment_method_options))
+	if 'nan' in payment_method_options:
+		payment_method_options.remove('nan')
+
 	try:
 		entry.payment_method = str(st.segmented_control('', payment_method_options, default=selected_entry['payment_method']))
 	except:
@@ -46,6 +52,11 @@ def render_input_form(selected_entry = pd.Series(), selected_id = None, update_b
 	# category
 	category_options = config_manger.categories_df['income'] if entry.transaction_type == '収入' else config_manger.categories_df['expense']
 	category_options = list(category_options)
+	category_options.extend(df[(df['transaction_type'] == entry.transaction_type)]['category'].tolist())
+	category_options = list(dict.fromkeys(category_options))
+	if 'nan' in category_options:
+		category_options.remove('nan')
+
 	try:
 		entry.category = str(st.pills('', category_options, default=selected_entry['category']))
 	except:
@@ -72,3 +83,5 @@ def render_input_form(selected_entry = pd.Series(), selected_id = None, update_b
 		st.session_state['update_success'] = True
 		st.session_state['selected_id'] = selected_id
 		st.rerun()
+
+	st.write('※ カテゴリーなどの統合は、設定画面から行ってください。')
