@@ -82,9 +82,11 @@ if mode == '表示モード':
 	df['金額'] = df['金額'].apply(lambda x: f"¥{x:,}")
 
 	row = st.columns(3)
+	df['year'] = pd.to_datetime(df['日付']).dt.year
+	df['month'] = pd.to_datetime(df['日付']).dt.month
 	with row[0]:
 		# 年月範囲
-		start_date = st.date_input('開始日')
+		start_date = st.date_input('開始日', value=pd.to_datetime(f"{df['year'].min()}-{df['month'].min()}-01"))
 	with row[1]:
 		end_date = st.date_input('終了日')
 	with row[2]:
