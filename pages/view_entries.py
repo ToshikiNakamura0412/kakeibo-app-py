@@ -64,8 +64,8 @@ if view_type == '月別':
 
 else:
 	# 集計用df → 次ごとのcategoryごとの合計金額を表示
-	agg_df_income = df[(df['year'] == int(selected_year)) & (df['transaction_type'] == '収入')].groupby(['category']).sum().reset_index()
-	agg_df_expense = df[(df['year'] == int(selected_year)) & (df['transaction_type'] == '支出')].groupby(['category']).sum().reset_index()
+	agg_df_income = df[(df['year'] == int(selected_year)) & (df['transaction_type'] == '収入')].groupby(['category', 'month']).sum().reset_index()
+	agg_df_expense = df[(df['year'] == int(selected_year)) & (df['transaction_type'] == '支出')].groupby(['category', 'month']).sum().reset_index()
 
 	if len(agg_df_income) != 0:
 		st.markdown('### 収入')
