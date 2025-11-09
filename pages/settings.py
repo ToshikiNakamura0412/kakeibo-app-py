@@ -1,6 +1,3 @@
-from typing import dataclass_transform
-from unicodedata import category
-from pandas import merge
 import streamlit as st
 
 from kakeibo.common import utils, config_models
@@ -48,6 +45,10 @@ def delete_config_confirmation(key):
 		st.rerun()
 	if st.button('いいえ'):
 		st.rerun()
+
+def is_used_in_db(column_name, value):
+	mask = df[column_name] == value
+	return mask.any()
 
 if selected_option == 'ユーザー設定':
 	cols = st.columns([11,1], vertical_alignment='center')
@@ -188,16 +189,24 @@ elif selected_option == 'カテゴリー設定':
 
 		if st.button(':material/save: 保存'):
 			if st.session_state.get('income_df_changed', False):
-				categories_df['income'] = updated_categories_income
-				config_manger.update_categories(categories_df)
-				st.success(':material/Check: 収入カテゴリーを更新しました！')
-				del st.session_state['income_df_changed']
+				xor_list = list(set(categories_df['income']) ^ set(updated_categories_income))
+				if (len(categories_df['income']) - len(xor_list) > 0) and any(is_used_in_db('category', cat) for cat in xor_list):
+					st.error(':material/Warning: 使用中のカテゴリーを削除することはできません。')
+				else:
+					categories_df['income'] = updated_categories_income
+					config_manger.update_categories(categories_df)
+					st.success(':material/Check: 収入カテゴリーを更新しました！')
+					del st.session_state['income_df_changed']
 
 			if st.session_state.get('expense_df_changed', False):
-				categories_df['expense'] = updated_categories_expense
-				config_manger.update_categories(categories_df)
-				st.success(':material/Check: 支出カテゴリーを更新しました！')
-				del st.session_state['expense_df_changed']
+				xor_list = list(set(categories_df['expense']) ^ set(updated_categories_expense))
+				if (len(categories_df['expense']) - len(xor_list) > 0) and any(is_used_in_db('category', cat) for cat in xor_list):
+					st.error(':material/Warning: 使用中のカテゴリーを削除することはできません。')
+				else:
+					categories_df['expense'] = updated_categories_expense
+					config_manger.update_categories(categories_df)
+					st.success(':material/Check: 支出カテゴリーを更新しました！')
+					del st.session_state['expense_df_changed']
 
 	elif edit_mode == '統合':
 		st.markdown('**カテゴリー統合**')
