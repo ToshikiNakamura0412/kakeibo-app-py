@@ -33,14 +33,21 @@ for i, year in enumerate(years):
 df['year'] = pd.to_datetime(df['date']).dt.year
 df['month'] = pd.to_datetime(df['date']).dt.month
 
-selected_year = st.pills('Year', df['year'].unique(), key='selected_year', default=df['year'].unique()[-1])
+year_options = list(df['year'].unique())
+year_options = sorted(year_options)
+selected_year = st.pills('Year', year_options, key='selected_year', default=year_options[-1])
 
 if selected_year is None:
 	st.warning('表示する年を選択してください。')
 	st.stop()
 
 if view_type == '月別':
-	selected_month = st.pills('Month', df['month'].unique(), key='selected_month', default=df['month'].unique()[-1])
+	month_options = list(df[df['year'] == int(selected_year)]['month'].unique())
+	month_options = sorted(month_options)
+	selected_month = st.pills('Month', month_options, key='selected_month', default=month_options[-1])
+	if selected_month is None:
+		st.warning('表示する月を選択してください。')
+		st.stop()
 
 	# 集計用df → 次ごとのcategoryごとの合計金額を表示
 	agg_df_income = df[(df['year'] == int(selected_year)) & (df['month'] == int(selected_month)) & (df['transaction_type'] == '収入')].groupby(['category']).sum().reset_index()
