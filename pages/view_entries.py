@@ -55,12 +55,20 @@ if view_type == '月別':
 	agg_df_income = df[(df['year'] == int(selected_year)) & (df['month'] == int(selected_month)) & (df['transaction_type'] == '収入')].groupby(['category']).sum().reset_index()
 	agg_df_expense = df[(df['year'] == int(selected_year)) & (df['month'] == int(selected_month)) & (df['transaction_type'] == '支出')].groupby(['category']).sum().reset_index()
 
+	sum_income = 0
+	sum_expense = 0
 	if len(agg_df_income) != 0:
 		st.markdown(f"### 収入")
+		sum_income = agg_df_income['amount'].sum()
+		st.write(f"**合計：{sum_income:,} 円**")
 		st.bar_chart(agg_df_income, x='category', y='amount', x_label='合計金額（円）', y_label='カテゴリー', color='category', horizontal=True)
 	if len(agg_df_expense) != 0:
 		st.markdown(f"### 支出")
+		sum_expense = agg_df_expense['amount'].sum()
+		st.write(f"**合計：{sum_expense:,} 円**")
 		st.bar_chart(agg_df_expense, x='category', y='amount', x_label='合計金額（円）', y_label='カテゴリー', color='category', horizontal=True)
+
+	st.markdown(f"### 収支合計：{sum_income - sum_expense:,} 円")
 
 else:
 	# 集計用df → 次ごとのcategoryごとの合計金額を表示
