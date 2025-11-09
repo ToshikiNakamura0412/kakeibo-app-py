@@ -13,10 +13,12 @@ class ConfigManager:
     def _load(self):
         with open(self.json_path, 'r', encoding='utf-8') as f:
             self.config_df = pd.read_json(f)
+        self.renumber_configs()
         self.user_settings_df = self.config_df['configs']['user_settings']
         self.categories_df = self.config_df['configs']['categories']
 
     def _save(self):
+        self.renumber_configs()
         with open(CUSTOM_CONFIG_FILE_PATH, 'w', encoding='utf-8') as f:
             self.config_df.to_json(f, force_ascii=False, indent=2)
 
@@ -70,6 +72,23 @@ class ConfigManager:
     def is_in_config(self, key: str) -> bool:
         return key in self.config_df.index
 
+    def renumber_configs(self):
+        # Renumber bank accounts
+        bank_account_keys = [f'bank_account_{i}' for i in range(1, 11)]
+        existing_bank_accounts = [key for key in bank_account_keys if self.is_in_config(key)]
+        for i, key in enumerate(existing_bank_accounts):
+            if key != f'bank_account_{i + 1}':
+                self.config_df.loc[f'bank_account_{i + 1}'] = self.config_df.loc[key]
+                self.config_df = self.config_df.drop(index=key)
+
+        # Renumber credit cards
+        credit_card_keys = [f'credit_card_{k}' for k in range(1, 11)]
+        existing_credit_cards = [key for key in credit_card_keys if self.is_in_config(key)]
+        for j, key in enumerate(existing_credit_cards):
+            if key != f'credit_card_{j + 1}':
+                self.config_df.loc[f'credit_card_{j + 1}'] = self.config_df.loc[key]
+                self.config_df = self.config_df.drop(index=key)
+
     def delete_config(self, key: str) -> bool:
         if not self.is_in_config(key):
             return False
@@ -77,3 +96,4 @@ class ConfigManager:
         self._save()
         self.reload()
         return True
+
