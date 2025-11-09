@@ -114,7 +114,10 @@ if selected_option == 'ユーザー設定':
 					with cols[0]:
 						st.markdown(f'- {field}')
 					with cols[1]:
-						st.markdown(f'{value}')
+						if field == '初期残高':
+							st.markdown(f'{int(value):,} 円')
+						else:
+							st.markdown(f'{value}')
 			if st.session_state.get(f'bank_account_{i+1}_changed', False):
 				st.success(':material/Check: 銀行口座設定を更新しました！')
 				del st.session_state[f'bank_account_{i+1}_changed']
@@ -166,7 +169,10 @@ if selected_option == 'ユーザー設定':
 					with cols[0]:
 						st.markdown(f'- {field}')
 					with cols[1]:
-						st.markdown(f'{value}')
+						if field == '利用限度額':
+							st.markdown(f'{int(value):,} 円')
+						else:
+							st.markdown(f'{value}')
 			if st.session_state.get(f'credit_card_{i+1}_changed', False):
 				st.success(':material/Check: クレジットカード設定を更新しました！')
 				del st.session_state[f'credit_card_{i+1}_changed']

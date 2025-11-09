@@ -23,8 +23,8 @@ class ConfigManager:
     def reload(self):
         self._load()
 
-    def get_cash_init_balance(self):
-        return self.config_df['configs']['user_settings']['init_balance']
+    def get_cash_init_balance(self) -> int:
+        return int(self.config_df['configs']['user_settings']['init_balance'])
 
     def update_cash_init_balance(self, value: int):
         self.config_df['configs']['user_settings']['init_balance'] = value

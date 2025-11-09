@@ -2,7 +2,8 @@ import pandas as pd
 import streamlit as st
 
 from kakeibo.common import config_models, config_manager
-from kakeibo.model import database
+from kakeibo.model import aggregation, database
+from kakeibo.model import aggregation as agg
 
 database.create_table()
 
@@ -85,3 +86,26 @@ def render_input_form(selected_entry = pd.Series(), selected_id = None, update_b
 		st.rerun()
 
 	st.write('※ カテゴリーなどの統合は、設定画面から行ってください。')
+
+def render_current_balance() -> None:
+	aggregation = agg.Aggregation()
+	df = database.fetch_all_entries()
+
+	# cash
+	cash_balance = aggregation.calc_cash_balance(df)
+	st.markdown('### 現金')
+	st.write(f'残高：{cash_balance:,} 円')
+
+	# bank
+	bank_list = aggregation.get_bank_and_credit_card_list()
+	if len(bank_list) > 0:
+		st.markdown('### 銀行口座残高')
+		for bank in bank_list:
+			bank_name = bank['name']
+			bank_balance = aggregation.calc_bank_balance(df, bank_name)
+			unbilled_amount = aggregation.calc_unbilled_amount(df, bank_name)
+			st.write(f'{bank_name}：{bank_balance:,} 円（未請求額：{unbilled_amount:,} 円）')
+
+			if bank_balance < unbilled_amount:
+				st.warning(f'⚠️ {bank_name}の残高が未請求額を下回っています。')
+
