@@ -13,6 +13,15 @@ st.title(':material/Bar_Chart: 照会画面')
 
 database.create_table()
 df = database.fetch_all_entries()
+
+def convert_format_for_table(df: pd.DataFrame) -> pd.DataFrame:
+	df_for_table = df[['category', 'amount']].copy()
+	df_for_table['percentage'] = (df_for_table['amount'] / df_for_table['amount'].sum() * 100).round(1).astype(str) + '%'
+	df_for_table['amount'] = df_for_table['amount'].apply(lambda x: f"{x:,}")
+	df_for_table.rename(columns={'category': 'カテゴリー', 'amount': '合計金額（円）', 'percentage': '割合'}, inplace=True)
+
+	return df_for_table
+
 if len(df) == 0:
 	st.warning('表示するデータがありません。')
 	st.stop()
@@ -62,11 +71,24 @@ if view_type == '月別':
 	if len(agg_df_income) != 0:
 		st.markdown(f"### 収入")
 		st.write(f"**合計：{sum_income:,} 円**")
-		st.bar_chart(agg_df_income, x='category', y='amount', x_label='合計金額（円）', y_label='カテゴリー', color='category', horizontal=True)
+
+		view_type = st.segmented_control('表示形式', ['棒グラフ', '表'], key='income_view_type', default='棒グラフ')
+		if view_type == '棒グラフ':
+			st.bar_chart(agg_df_income, x='category', y='amount', x_label='合計金額（円）', y_label='カテゴリー', color='category', horizontal=True)
+		elif view_type == '表':
+			df_income_for_table = convert_format_for_table(agg_df_income)
+			st.table(df_income_for_table, border='horizontal')
+
 	if len(agg_df_expense) != 0:
 		st.markdown(f"### 支出")
 		st.write(f"**合計：{sum_expense:,} 円**")
-		st.bar_chart(agg_df_expense, x='category', y='amount', x_label='合計金額（円）', y_label='カテゴリー', color='category', horizontal=True)
+
+		view_type = st.segmented_control('表示形式', ['棒グラフ', '表'], key='expense_view_type', default='棒グラフ')
+		if view_type == '棒グラフ':
+			st.bar_chart(agg_df_expense, x='category', y='amount', x_label='合計金額（円）', y_label='カテゴリー', color='category', horizontal=True)
+		elif view_type == '表':
+			df_expense_for_table = convert_format_for_table(agg_df_expense)
+			st.table(df_expense_for_table, border='horizontal')
 
 
 elif view_type == '年別':
