@@ -16,8 +16,10 @@ df = database.fetch_all_entries()
 
 def convert_format_for_table(df: pd.DataFrame) -> pd.DataFrame:
 	df_for_table = df[['category', 'amount']].copy()
-	df_for_table['percentage'] = (df_for_table['amount'] / df_for_table['amount'].sum() * 100).round(1).astype(str) + '%'
+	df_for_table['percentage'] = (df_for_table['amount'] / df_for_table['amount'].sum() * 100).round(1)
 	df_for_table['amount'] = df_for_table['amount'].apply(lambda x: f"{x:,}")
+	df_for_table = df_for_table.sort_values(by='percentage', ascending=False).reset_index(drop=True)
+	df_for_table['percentage'] = df_for_table['percentage'].apply(lambda x: f"{x}%")
 	df_for_table.rename(columns={'category': 'カテゴリー', 'amount': '合計金額（円）', 'percentage': '割合'}, inplace=True)
 
 	return df_for_table
