@@ -15,6 +15,10 @@ database.create_table()
 # すべての記録を取得して表示
 df = database.fetch_all_entries()
 
+if len(df) == 0:
+	st.warning('表示するデータがありません。')
+	st.stop()
+
 config_manger = config_manager.ConfigManager()
 user_settings_df = config_manger.user_settings_df
 categories_df = config_manger.categories_df
