@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 import pandas as pd
 import streamlit as st
 
@@ -29,6 +30,9 @@ if len(df) == 0:
 	st.stop()
 
 ui_components.render_current_balance()
+
+if not os.path.exists(database.CUSTOM_DB_PATH):
+	st.info('デモデータを表示しています。データを入力またはインポートすると、新規データベースが作成されます。')
 
 view_type_options = ['月別', '年別']
 view_type = st.segmented_control('', view_type_options, key="view_type", default=view_type_options[0])

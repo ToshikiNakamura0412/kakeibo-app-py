@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import streamlit as st
 from copy import deepcopy
@@ -18,6 +19,9 @@ df = database.fetch_all_entries()
 if len(df) == 0:
 	st.warning('表示するデータがありません。')
 	st.stop()
+
+if not os.path.exists(database.CUSTOM_DB_PATH):
+	st.info('デモデータを表示しています。データを入力またはインポートすると、新規データベースが作成されます。')
 
 config_manger = config_manager.ConfigManager()
 user_settings_df = config_manger.user_settings_df
