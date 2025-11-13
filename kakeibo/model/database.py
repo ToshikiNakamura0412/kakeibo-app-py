@@ -1,0 +1,135 @@
+import os
+import pandas as pd
+import sqlite3
+
+from kakeibo.common import config_models
+
+DEFAULT_DB_PATH = 'data/entries.db'
+CUSTOM_DB_PATH = 'data/my_entries.db'
+
+def execute_commit(sql, db_path = DEFAULT_DB_PATH):
+	if os.path.exists(CUSTOM_DB_PATH):
+		db_path = CUSTOM_DB_PATH
+
+	conn = sqlite3.connect(db_path)
+	cursor = conn.cursor()
+
+	try:
+		cursor.execute(sql)
+		conn.commit()
+	except Exception as e:
+		print(f"Error: {e}")
+	finally:
+		cursor.close()
+		conn.close()
+
+def create_table(db_path = DEFAULT_DB_PATH):
+	labels = config_models.ENTRY_LABELS_EN
+	sql = f"""
+		CREATE TABLE IF NOT EXISTS entries (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			{labels.date} TEXT NOT NULL,
+			{labels.transaction_type} TEXT NOT NULL,
+			{labels.category} TEXT NOT NULL,
+			{labels.note} TEXT,
+			{labels.payment_method} TEXT,
+			{labels.amount} INTEGER NOT NULL
+		)
+	"""
+	execute_commit(sql, db_path)
+
+def add_entry(entry):
+	labels = config_models.ENTRY_LABELS_EN
+	sql = f"""
+		INSERT INTO entries (
+			{labels.date},
+			{labels.transaction_type},
+			{labels.category},
+			{labels.note},
+			{labels.payment_method},
+			{labels.amount}
+		)
+		VALUES (
+			'{entry.date}',
+			'{entry.transaction_type}',
+			'{entry.category}',
+			'{entry.note}',
+			'{entry.payment_method}',
+			{entry.amount}
+		)
+	"""
+
+	if not os.path.exists(CUSTOM_DB_PATH):
+		create_table(CUSTOM_DB_PATH)
+
+	execute_commit(sql)
+
+def import_entries_from_df(df):
+	labels = config_models.ENTRY_LABELS_EN
+	for _, row in df.iterrows():
+		entry = config_models.Entry(
+			f'{row[labels.date]}',
+			f'{row[labels.transaction_type]}',
+			f'{row[labels.category]}',
+			f'{row[labels.note]}',
+			f'{row[labels.payment_method]}',
+			f'{row[labels.amount]}',
+		)
+		add_entry(entry)
+
+def delete_entry(entry_id):
+	sql = f"DELETE FROM entries WHERE id = {entry_id}"
+	execute_commit(sql)
+
+def update_data(entry_id, col_name, value):
+	sql = f"UPDATE entries SET {col_name} = '{value}' WHERE id = {entry_id}"
+	execute_commit(sql)
+
+def override_db(df):
+	execute_commit("DROP TABLE IF EXISTS entries")
+	create_table()
+	import_entries_from_df(df)
+
+def update_entry(entry_id, entry):
+	df = fetch_all_entries()
+	labels = config_models.ENTRY_LABELS_EN.to_list()
+	old_entry = df[df['id'] == entry_id]
+	new_entry = entry.to_dict()
+	for col in labels:
+		old_value = old_entry[col]
+		new_value = new_entry[col]
+		if str(old_value) != str(new_value):
+			update_data(entry_id, col, new_value)
+
+def check_entry_exists(id, db_path = DEFAULT_DB_PATH, use_custom_db = True):
+	if os.path.exists(CUSTOM_DB_PATH) and use_custom_db:
+		db_path = CUSTOM_DB_PATH
+	conn = sqlite3.connect(db_path)
+	cursor = conn.cursor()
+
+	count = 0
+	try:
+		cursor.execute('SELECT COUNT(*) FROM entries WHERE id = ?', (id,))
+		count = cursor.fetchone()[0]
+	except Exception as e:
+		print(f"Error: {e}")
+	finally:
+		cursor.close()
+		conn.close()
+
+	return count > 0
+
+def fetch_all_entries(db_path = DEFAULT_DB_PATH, use_custom_db = True):
+	if os.path.exists(CUSTOM_DB_PATH) and use_custom_db:
+		db_path = CUSTOM_DB_PATH
+	conn = sqlite3.connect(db_path)
+
+	entries = pd.DataFrame()
+	try:
+		entries = pd.read_sql_query('SELECT * FROM entries', conn)
+	except Exception as e:
+		print(f"Error: {e}")
+	finally:
+		conn.close()
+
+	return entries
