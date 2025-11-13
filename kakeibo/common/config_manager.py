@@ -7,10 +7,10 @@ CUSTOM_CONFIG_FILE_PATH = 'configs/custom_config.json'
 
 class ConfigManager:
     def __init__(self):
-        self.json_path = CUSTOM_CONFIG_FILE_PATH if utils.check_file_exists(CUSTOM_CONFIG_FILE_PATH) else CONFIG_FILE_PATH
         self._load()
 
     def _load(self):
+        self.json_path = CUSTOM_CONFIG_FILE_PATH if utils.check_file_exists(CUSTOM_CONFIG_FILE_PATH) else CONFIG_FILE_PATH
         with open(self.json_path, 'r', encoding='utf-8') as f:
             self.config_df = pd.read_json(f)
         self.renumber_configs()
@@ -26,22 +26,23 @@ class ConfigManager:
         self._load()
 
     def get_cash_init_balance(self) -> int:
+        self.reload()
         return int(self.config_df['configs']['user_settings']['init_balance'])
 
     def update_cash_init_balance(self, value: int):
+        self.reload()
         self.config_df['configs']['user_settings']['init_balance'] = value
         self._save()
-        self.reload()
 
     def update_user_settings(self, new_settings: pd.DataFrame):
+        self.reload()
         self.config_df['configs']['user_settings'] = new_settings
         self._save()
-        self.reload()
 
     def update_categories(self, new_categories: pd.DataFrame):
+        self.reload()
         self.config_df['configs']['categories'] = new_categories
         self._save()
-        self.reload()
 
     def get_bank_account(self, index: int = 0) -> config_models.BankAccountConfig:
         key = f'bank_account_{index}'
@@ -52,9 +53,9 @@ class ConfigManager:
         return config_models.BankAccountConfig(**bank_account_dict)
 
     def update_bank_accounts(self, new_accounts: dict, index: int = 0):
+        self.reload()
         self.config_df.loc[f'bank_account_{index}'] = [new_accounts]
         self._save()
-        self.reload()
 
     def get_credit_card(self, index: int = 0) -> config_models.CreditCardConfig:
         key = f'credit_card_{index}'
@@ -65,9 +66,9 @@ class ConfigManager:
         return config_models.CreditCardConfig(**credit_card_dict)
 
     def update_credit_cards(self, new_cards: dict, index: int = 0):
+        self.reload()
         self.config_df.loc[f'credit_card_{index}'] = [new_cards]
         self._save()
-        self.reload()
 
     def is_in_config(self, key: str) -> bool:
         return key in self.config_df.index
@@ -92,8 +93,8 @@ class ConfigManager:
     def delete_config(self, key: str) -> bool:
         if not self.is_in_config(key):
             return False
+        self.reload()
         self.config_df = self.config_df.drop(index=key)
         self._save()
-        self.reload()
         return True
 
