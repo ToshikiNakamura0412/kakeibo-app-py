@@ -1,9 +1,16 @@
+import os
 import pandas as pd
 import sqlite3
 
 from kakeibo.common import config_models
 
-def execute_commit(sql, db_path = 'data/entries.db'):
+DEFAULT_DB_PATH = 'data/entries.db'
+CUSTOM_DB_PATH = 'data/my_entries.db'
+
+def execute_commit(sql, db_path = DEFAULT_DB_PATH):
+	if os.path.exists(CUSTOM_DB_PATH):
+		db_path = CUSTOM_DB_PATH
+
 	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
 
@@ -16,7 +23,7 @@ def execute_commit(sql, db_path = 'data/entries.db'):
 		cursor.close()
 		conn.close()
 
-def create_table():
+def create_table(db_path = DEFAULT_DB_PATH):
 	labels = config_models.ENTRY_LABELS_EN
 	sql = f"""
 		CREATE TABLE IF NOT EXISTS entries (
@@ -29,7 +36,7 @@ def create_table():
 			{labels.amount} INTEGER NOT NULL
 		)
 	"""
-	execute_commit(sql)
+	execute_commit(sql, db_path)
 
 def add_entry(entry):
 	labels = config_models.ENTRY_LABELS_EN
@@ -51,6 +58,10 @@ def add_entry(entry):
 			{entry.amount}
 		)
 	"""
+
+	if not os.path.exists(CUSTOM_DB_PATH):
+		create_table(CUSTOM_DB_PATH)
+
 	execute_commit(sql)
 
 def import_entries_from_df(df):
@@ -90,7 +101,9 @@ def update_entry(entry_id, entry):
 		if str(old_value) != str(new_value):
 			update_data(entry_id, col, new_value)
 
-def check_entry_exists(id, db_path = 'data/entries.db'):
+def check_entry_exists(id, db_path = DEFAULT_DB_PATH, use_custom_db = True):
+	if os.path.exists(CUSTOM_DB_PATH) and use_custom_db:
+		db_path = CUSTOM_DB_PATH
 	conn = sqlite3.connect(db_path)
 	cursor = conn.cursor()
 
@@ -106,7 +119,9 @@ def check_entry_exists(id, db_path = 'data/entries.db'):
 
 	return count > 0
 
-def fetch_all_entries(db_path = 'data/entries.db'):
+def fetch_all_entries(db_path = DEFAULT_DB_PATH, use_custom_db = True):
+	if os.path.exists(CUSTOM_DB_PATH) and use_custom_db:
+		db_path = CUSTOM_DB_PATH
 	conn = sqlite3.connect(db_path)
 
 	entries = pd.DataFrame()
