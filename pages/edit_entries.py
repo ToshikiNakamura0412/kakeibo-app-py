@@ -133,8 +133,7 @@ def select_entry(df, transaction_type):
 
 
 def render_page():
-    ui_components.render_common_components()
-    st.title(":material/Edit: 編集画面")
+    ui_components.render_common_components(":material/Edit: 編集画面")
 
     database.create_table()
     # すべての記録を取得して表示

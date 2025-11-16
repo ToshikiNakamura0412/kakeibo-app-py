@@ -4,8 +4,7 @@ from kakeibo.common import ui_components
 
 
 def render_home_page():
-    ui_components.render_common_components()
-    st.title(":material/Home: 家計簿")
+    ui_components.render_common_components(":material/Home: 家計簿")
 
     row = st.columns(5)
     with row[0]:

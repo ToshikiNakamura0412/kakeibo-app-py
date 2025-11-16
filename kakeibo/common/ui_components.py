@@ -32,10 +32,12 @@ def render_home_button():
     st.page_link("app.py", label=":material/Home:")
 
 
-def render_common_components():
+def render_common_components(title: str = None) -> None:
     set_page_config()
     render_sidebar()
     render_home_button()
+    if title:
+        st.title(title)
 
 
 def render_input_form(

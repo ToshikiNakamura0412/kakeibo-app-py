@@ -4,8 +4,7 @@ from kakeibo.common import config_models, ui_components
 from kakeibo.common.config_manager import ConfigManager
 from kakeibo.model import database
 
-st.title(":material/Settings: 設定")
-ui_components.render_common_components()
+ui_components.render_common_components(":material/Settings: 設定")
 
 database.create_table()
 df = database.fetch_all_entries()

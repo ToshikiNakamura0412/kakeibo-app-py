@@ -86,8 +86,9 @@ def format_date_df(df):
 
 
 def render_page():
-    st.title(":material/Place_Item: インポートフォーム")
-    ui_components.render_common_components()
+    ui_components.render_common_components(
+        ":material/Place_Item: インポートフォーム"
+    )
     database.create_table()
     uploaded_file = st.file_uploader(
         "**CSVファイルをアップロード**", type=["csv"]

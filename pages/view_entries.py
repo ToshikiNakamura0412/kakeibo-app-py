@@ -7,8 +7,7 @@ import streamlit as st
 from kakeibo.common import ui_components
 from kakeibo.model import database
 
-st.title(":material/Bar_Chart: 照会画面")
-ui_components.render_common_components()
+ui_components.render_common_components(":material/Bar_Chart: 照会画面")
 
 database.create_table()
 df = database.fetch_all_entries()
