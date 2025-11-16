@@ -263,7 +263,8 @@ def render_category_settings_section(manager: ConfigManager, df):
                     is_used_in_db(df, "category", cat) for cat in xor_list
                 ):
                     st.error(
-                        ":material/Warning: 使用中のカテゴリーを削除することはできません。"
+                        ":material/Warning: \
+                            使用中のカテゴリーを削除することはできません。"
                     )
                 else:
                     categories_df["income"] = updated_categories_income
@@ -283,7 +284,8 @@ def render_category_settings_section(manager: ConfigManager, df):
                     is_used_in_db(df, "category", cat) for cat in xor_list
                 ):
                     st.error(
-                        ":material/Warning: 使用中のカテゴリーを削除することはできません。"
+                        ":material/Warning: \
+                            使用中のカテゴリーを削除することはできません。"
                     )
                 else:
                     categories_df["expense"] = updated_categories_expense
