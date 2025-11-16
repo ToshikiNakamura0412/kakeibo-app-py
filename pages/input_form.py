@@ -4,6 +4,7 @@ from kakeibo.common import ui_components
 
 
 def render_input_form():
+    ui_components.render_common_components()
     st.title(":material/Input: 入力フォーム")
     if (
         "update_success" in st.session_state
@@ -17,5 +18,4 @@ def render_input_form():
     ui_components.render_input_form()
 
 
-ui_components.render_common_components()
 render_input_form()
