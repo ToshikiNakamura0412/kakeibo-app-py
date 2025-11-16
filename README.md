@@ -3,6 +3,8 @@
 [![lint](https://github.com/ToshikiNakamura0412/kakeibo-app-py/actions/workflows/lint.yml/badge.svg)](https://github.com/ToshikiNakamura0412/kakeibo-app-py/actions/workflows/lint.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+![スクリーンショット1](https://github.com/ToshikiNakamura0412/kakeibo-app-py/wiki/images/screenshot1.png)
+
 ## 概要
 kakeibo-app-pyは、Pythonで構築された個人向け財務管理アプリケーションです。
 
@@ -34,7 +36,6 @@ kakeibo-app-pyは、Pythonで構築された個人向け財務管理アプリケ
     - ターミナルに表示されるURLにはスマホからもアクセス可能です
 
 ## スクリーンショット
-![スクリーンショット1](https://github.com/ToshikiNakamura0412/kakeibo-app-py/wiki/images/screenshot1.png)
 ![スクリーンショット2](https://github.com/ToshikiNakamura0412/kakeibo-app-py/wiki/images/screenshot2.png)
 ![スクリーンショット3](https://github.com/ToshikiNakamura0412/kakeibo-app-py/wiki/images/screenshot3.png)
 ![スクリーンショット4](https://github.com/ToshikiNakamura0412/kakeibo-app-py/wiki/images/screenshot4.png)
