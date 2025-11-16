@@ -1,5 +1,6 @@
 # kakeibo-app-py
 
+[![lint](https://github.com/ToshikiNakamura0412/kakeibo-app-py/actions/workflows/lint.yml/badge.svg)](https://github.com/ToshikiNakamura0412/kakeibo-app-py/actions/workflows/lint.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 概要
