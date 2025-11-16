@@ -1,0 +1,13 @@
+[tool.black]
+line-length = 79
+target-version = ['py312']
+
+[tool.ruff]
+line-length = 79
+target-version = "py312"
+# 無効にしたいルールが出てきたらここに追加（例）
+# ignore = ["E402"]
+
+[tool.ruff.lint]
+# 使いたいルールセット。後から増やしてもOK
+select = ["E", "F", "I"]  # E: pycodestyle, F: pyflakes, I: import関連
