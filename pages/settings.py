@@ -4,10 +4,6 @@ from kakeibo.common import config_models, ui_components
 from kakeibo.common.config_manager import ConfigManager
 from kakeibo.model import database
 
-config_manger = ConfigManager()
-
-selected_options = ["ユーザー設定", "カテゴリー設定"]
-
 
 def user_setting_change_callback():
     st.session_state["user_setting_changed"] = True
@@ -30,7 +26,7 @@ def credit_card_change_callback():
 
 
 @st.dialog(title="削除確認")
-def delete_config_confirmation(key):
+def delete_config_confirmation(config_manger, key):
     st.write("本当に削除しますか？")
     if st.button("はい"):
         config_manger.delete_config(key)
@@ -96,7 +92,7 @@ def render_bank_account_settings(manager: ConfigManager):
                         del st.session_state[key]
             with cols[-1]:
                 if st.button(f"{i+1}", icon=":material/delete:"):
-                    delete_config_confirmation(f"bank_account_{i+1}")
+                    delete_config_confirmation(manager, f"bank_account_{i+1}")
             bank_account_config = manager.get_bank_account(i + 1)
             if f"edit_bank_{i+1}" in st.session_state:
                 cols = st.columns([2, 5, 2], vertical_alignment="bottom")
@@ -162,7 +158,7 @@ def render_credit_card_settings(manager: ConfigManager):
                         del st.session_state[key]
             with cols[-1]:
                 if st.button(f" {i+1}", icon=":material/delete:"):
-                    delete_config_confirmation(f"credit_card_{i+1}")
+                    delete_config_confirmation(manager, f"credit_card_{i+1}")
             credit_card_config = manager.get_credit_card(i + 1)
             if f"edit_credit_{i+1}" in st.session_state:
                 cols = st.columns([2, 5, 2], vertical_alignment="bottom")
@@ -338,10 +334,12 @@ def render_settings_page():
     ui_components.render_common_components(":material/Settings: 設定")
     database.create_table()
     df = database.fetch_all_entries()
+    selected_options = ["ユーザー設定", "カテゴリー設定"]
     selected_option = st.segmented_control(
         "設定メニュー", selected_options, default=selected_options[0]
     )
     st.markdown("---")
+    config_manger = ConfigManager()
     if selected_option == "ユーザー設定":
         render_user_settings_section(config_manger)
     else:
