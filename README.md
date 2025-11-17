@@ -4,6 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ![スクリーンショット1](https://github.com/ToshikiNakamura0412/kakeibo-app-py/wiki/images/screenshot1.png)
+[スクリーンショット](#スクリーンショット)
 
 ## 概要
 kakeibo-app-pyは、Pythonで構築された個人向け財務管理アプリケーションです。
