@@ -36,6 +36,16 @@ kakeibo-app-pyは、Pythonで構築された個人向け財務管理アプリケ
     - 画面が自動で立ち上がります
     - ターミナルに表示されるURLにはスマホからもアクセス可能です
 
+## 設定/DBファイルについて
+- `data/my_entries.db` : 家計簿データを保存するSQLiteデータベースファイル
+- `configs/custom_config.json` : アプリケーションの設定を保存するJSONファイル
+
+自分のファイルを使いたい場合は、上記のパスにシンボリックリンクを作成してください。
+```bash
+ln -s /path/to/your/my_entries.db ./kakeibo-app-py/data/my_entries.db
+ln -s /path/to/your/custom_config.json ./kakeibo-app-py/configs/custom_config.json
+```
+
 ## スクリーンショット
 ![スクリーンショット2](https://github.com/ToshikiNakamura0412/kakeibo-app-py/wiki/images/screenshot2.png)
 ![スクリーンショット3](https://github.com/ToshikiNakamura0412/kakeibo-app-py/wiki/images/screenshot3.png)
