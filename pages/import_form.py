@@ -82,6 +82,11 @@ def format_date(date_str):
 def format_date_df(df):
     if "date" in df.columns:
         df["date"] = df["date"].apply(format_date)
+    if "amount" in df.columns:
+        df["amount"] = (
+            df["amount"].str.replace(r'[^\d]', '', regex=True)
+            .astype(int)
+        )
     return df
 
 
