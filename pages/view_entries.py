@@ -166,9 +166,13 @@ def render_yearly_view(df: pd.DataFrame, year: int) -> None:
     )
     sum_income = 0 if agg_df_income.empty else agg_df_income["amount"].sum()
     sum_expense = 0 if agg_df_expense.empty else agg_df_expense["amount"].sum()
-    avg_income = 0 if agg_df_income.empty else agg_df_income["amount"].mean()
+    avg_income = (
+        0 if agg_df_income.empty else \
+            agg_df_income.groupby("month").sum()["amount"].mean()
+    )
     avg_expense = (
-        0 if agg_df_expense.empty else agg_df_expense["amount"].mean()
+        0 if agg_df_expense.empty else \
+            agg_df_expense.groupby("month").sum()["amount"].mean()
     )
     st.markdown("### 収支")
     st.write(f"**合計：{sum_income - sum_expense:,} 円**")
